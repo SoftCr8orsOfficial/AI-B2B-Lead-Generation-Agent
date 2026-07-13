@@ -1,6 +1,6 @@
 """
 AI Sales Intelligence & Lead Generation Agent
-Streamlit Dashboard - Data Display Only (Working)
+Streamlit Dashboard - No Warnings
 """
 
 import streamlit as st
@@ -16,10 +16,6 @@ st.set_page_config(
 
 st.title("🤖 AI Sales Intelligence & Lead Generation Agent")
 st.caption("Discover B2B companies, analyze websites, identify decision-makers, and generate sales-ready leads.")
-
-# ============================================================
-# LOAD DATA
-# ============================================================
 
 @st.cache_data
 def load_data():
@@ -138,7 +134,7 @@ if not filtered_df.empty and total > 0:
 st.subheader("📊 Lead Data")
 
 if not filtered_df.empty:
-    st.dataframe(filtered_df, use_container_width=True, height=400)
+    st.dataframe(filtered_df, width='stretch', height=400)
 else:
     st.info("ℹ️ No data found. Please run modules locally first.")
 
@@ -153,7 +149,7 @@ with st.expander("🔗 LinkedIn Data"):
         if linkedin_cols:
             linkedin_df = filtered_df[linkedin_cols].dropna(subset=['linkedin_url'])
             if not linkedin_df.empty:
-                st.dataframe(linkedin_df, use_container_width=True)
+                st.dataframe(linkedin_df, width='stretch')
             else:
                 st.info("No LinkedIn data available")
 
@@ -169,7 +165,7 @@ with st.expander("👤 Decision Makers"):
             dm_df = filtered_df[dm_cols].copy()
             dm_df = dm_df[dm_df[dm_cols[1:]].notna().any(axis=1)]
             if not dm_df.empty:
-                st.dataframe(dm_df, use_container_width=True)
+                st.dataframe(dm_df, width='stretch')
             else:
                 st.info("No decision makers found")
 

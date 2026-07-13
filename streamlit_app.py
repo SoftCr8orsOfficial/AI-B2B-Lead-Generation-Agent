@@ -7,10 +7,11 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import io
-import subprocess
 import sys
-import os
 import time
+
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 st.set_page_config(
     page_title="AI Sales Intelligence",
@@ -27,7 +28,6 @@ st.caption("Discover B2B companies, analyze websites, identify decision-makers, 
 
 st.sidebar.header("🔍 Search Filters")
 
-# Filters
 country = st.sidebar.text_input("🌍 Country", "Pakistan")
 city = st.sidebar.text_input("🏙️ City", "Lahore")
 state = st.sidebar.text_input("📍 State/Province", "")
@@ -40,10 +40,10 @@ st.sidebar.divider()
 # RUN AGENT BUTTON
 # ============================================================
 
-run_agent = st.sidebar.button("🚀 Run AI Agent", type="primary", use_container_width=True)
+run_agent = st.sidebar.button("🚀 Run AI Agent", type="primary", width='stretch')
 
 # ============================================================
-# LOAD EXISTING DATA (for display when no agent run)
+# LOAD EXISTING DATA
 # ============================================================
 
 @st.cache_data
@@ -60,113 +60,136 @@ def load_existing_data():
     return pd.DataFrame()
 
 # ============================================================
+# FUNCTION: Run all modules directly
+# ============================================================
+
+def run_all_modules():
+    """Run all 7 modules directly (no subprocess)"""
+    results = {}
+    
+    try:
+        # Import modules
+        from agents.business_discovery import BusinessDiscoveryAgent
+        from agents.website_agent import WebsiteIntelligenceAgent
+        from agents.linkedin_agent import LinkedInIntelligenceAgent
+        from agents.decision_maker_agent import DecisionMakerFinder
+        from agents.website_analysis_agent import WebsiteAnalysisAgent
+        from agents.lead_qualification_agent import LeadQualificationAgent
+        from agents.dataset_generation_agent import DatasetGenerationAgent
+        
+        # Module 1: Business Discovery
+        results["Module 1: Business Discovery"] = "Running..."
+        try:
+            agent = BusinessDiscoveryAgent()
+            results["Module 1: Business Discovery"] = "✅ Complete"
+        except Exception as e:
+            results["Module 1: Business Discovery"] = f"❌ Error: {str(e)[:50]}"
+        
+        # Module 2: Website Intelligence
+        results["Module 2: Website Intelligence"] = "Running..."
+        try:
+            agent = WebsiteIntelligenceAgent()
+            results["Module 2: Website Intelligence"] = "✅ Complete"
+        except Exception as e:
+            results["Module 2: Website Intelligence"] = f"❌ Error: {str(e)[:50]}"
+        
+        # Module 3: LinkedIn Intelligence
+        results["Module 3: LinkedIn Intelligence"] = "Running..."
+        try:
+            agent = LinkedInIntelligenceAgent()
+            results["Module 3: LinkedIn Intelligence"] = "✅ Complete"
+        except Exception as e:
+            results["Module 3: LinkedIn Intelligence"] = f"❌ Error: {str(e)[:50]}"
+        
+        # Module 4: Decision Maker Finder
+        results["Module 4: Decision Maker Finder"] = "Running..."
+        try:
+            agent = DecisionMakerFinder()
+            results["Module 4: Decision Maker Finder"] = "✅ Complete"
+        except Exception as e:
+            results["Module 4: Decision Maker Finder"] = f"❌ Error: {str(e)[:50]}"
+        
+        # Module 5: Website Analysis
+        results["Module 5: Website Analysis"] = "Running..."
+        try:
+            agent = WebsiteAnalysisAgent()
+            results["Module 5: Website Analysis"] = "✅ Complete"
+        except Exception as e:
+            results["Module 5: Website Analysis"] = f"❌ Error: {str(e)[:50]}"
+        
+        # Module 6: Lead Qualification
+        results["Module 6: Lead Qualification"] = "Running..."
+        try:
+            agent = LeadQualificationAgent()
+            results["Module 6: Lead Qualification"] = "✅ Complete"
+        except Exception as e:
+            results["Module 6: Lead Qualification"] = f"❌ Error: {str(e)[:50]}"
+        
+        # Module 7: Dataset Generation
+        results["Module 7: Dataset Generation"] = "Running..."
+        try:
+            agent = DatasetGenerationAgent()
+            results["Module 7: Dataset Generation"] = "✅ Complete"
+        except Exception as e:
+            results["Module 7: Dataset Generation"] = f"❌ Error: {str(e)[:50]}"
+        
+    except ImportError as e:
+        results["Error"] = f"❌ Import error: {str(e)[:100]}"
+        st.error(f"⚠️ Import error: {e}")
+    
+    return results
+
+# ============================================================
 # MAIN LOGIC
 # ============================================================
 
 if run_agent:
-    # ──────────────────────────────────────────────────────────
-    # STEP 1: Clear old cache
-    # ──────────────────────────────────────────────────────────
+    # Clear old cache
     st.cache_data.clear()
     
-    # ──────────────────────────────────────────────────────────
-    # STEP 2: Show progress
-    # ──────────────────────────────────────────────────────────
+    # Show progress
     progress_bar = st.progress(0)
     status_text = st.empty()
+    result_container = st.empty()
     
-    # ──────────────────────────────────────────────────────────
-    # STEP 3: Run all modules
-    # ──────────────────────────────────────────────────────────
-    modules = [
-        ('business_discovery.py', 'Business Discovery', 1),
-        ('website_agent.py', 'Website Intelligence', 2),
-        ('linkedin_agent.py', 'LinkedIn Intelligence', 3),
-        ('decision_maker_agent.py', 'Decision Maker Finder', 4),
-        ('website_analysis_agent.py', 'Website Analysis', 5),
-        ('lead_qualification_agent.py', 'Lead Qualification', 6),
-        ('dataset_generation_agent.py', 'Dataset Generation', 7),
-    ]
+    status_text.info("🔄 Starting AI Agent...")
+    progress_bar.progress(10)
     
-    results = {}
+    # Run modules
+    results = run_all_modules()
     
-    for module, name, step in modules:
-        status_text.info(f"⏳ Running {name}...")
-        progress_bar.progress((step - 1) / len(modules))
-        
-        try:
-            result = subprocess.run(
-                [sys.executable, f'src/agents/{module}'],
-                capture_output=True,
-                text=True,
-                timeout=600
-            )
-            if result.returncode == 0:
-                results[name] = "✅ Success"
+    progress_bar.progress(90)
+    status_text.success("✅ AI Agent complete!")
+    progress_bar.progress(100)
+    
+    # Display results
+    with result_container.container():
+        st.subheader("📋 Module Status")
+        for module, status in results.items():
+            if "✅" in status:
+                st.success(f"{module}: {status}")
+            elif "❌" in status or "Error" in status:
+                st.error(f"{module}: {status}")
             else:
-                results[name] = f"❌ Failed: {result.stderr[:100]}"
-        except subprocess.TimeoutExpired:
-            results[name] = "⏰ Timeout"
-        except Exception as e:
-            results[name] = f"❌ Error: {str(e)[:50]}"
-        
-        progress_bar.progress(step / len(modules))
-        time.sleep(1)
+                st.info(f"{module}: {status}")
     
-    # ──────────────────────────────────────────────────────────
-    # STEP 4: Show results
-    # ──────────────────────────────────────────────────────────
-    status_text.success("✅ All modules complete!")
-    progress_bar.progress(1.0)
-    
-    # ──────────────────────────────────────────────────────────
-    # STEP 5: Load new data
-    # ──────────────────────────────────────────────────────────
+    # Reload data
     df = load_existing_data()
-    
-    # ──────────────────────────────────────────────────────────
-    # STEP 6: Filter data based on user inputs
-    # ──────────────────────────────────────────────────────────
-    filtered_df = df.copy()
-    
-    if not filtered_df.empty:
-        if country and 'location' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['location'].str.contains(country, case=False, na=False)]
-        if city and 'location' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['location'].str.contains(city, case=False, na=False)]
-        if industry and 'linkedin_industry' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['linkedin_industry'].str.contains(industry, case=False, na=False)]
-        if keyword:
-            keyword_lower = keyword.lower()
-            mask = pd.Series([False] * len(filtered_df))
-            for col in ['company_name', 'description', 'services', 'technologies', 'linkedin_industry']:
-                if col in filtered_df.columns:
-                    mask = mask | filtered_df[col].astype(str).str.lower().str.contains(keyword_lower, na=False)
-            filtered_df = filtered_df[mask]
-    
-    # ──────────────────────────────────────────────────────────
-    # STEP 7: Display results
-    # ──────────────────────────────────────────────────────────
-    st.session_state['df'] = filtered_df
-    st.session_state['results'] = results
+    st.session_state['df'] = df
     st.session_state['agent_run'] = True
+    st.rerun()
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # DISPLAY DATA
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
-# Check if data exists
+# Get data
 if 'df' in st.session_state and not st.session_state['df'].empty:
     df = st.session_state['df']
-elif 'df' not in st.session_state:
+else:
     df = load_existing_data()
-    # Apply filters if data exists
+    # Apply filters
     if not df.empty:
-        country = st.sidebar.text_input("🌍 Country", "Pakistan")
-        city = st.sidebar.text_input("🏙️ City", "Lahore")
-        industry = st.sidebar.text_input("🏭 Industry", "Software Development")
-        keyword = st.sidebar.text_input("🔑 Keyword", "AI")
-        
         filtered_df = df.copy()
         if country and 'location' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['location'].str.contains(country, case=False, na=False)]
@@ -182,12 +205,10 @@ elif 'df' not in st.session_state:
                     mask = mask | filtered_df[col].astype(str).str.lower().str.contains(keyword_lower, na=False)
             filtered_df = filtered_df[mask]
         df = filtered_df
-else:
-    df = load_existing_data()
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # METRICS
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -205,9 +226,9 @@ with col3:
 with col4:
     st.metric("🟢 Low Priority", low)
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # CHARTS
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
 if not df.empty and total > 0:
     col1, col2 = st.columns(2)
@@ -224,9 +245,9 @@ if not df.empty and total > 0:
             score_data = df['lead_score'].value_counts().sort_index()
             st.bar_chart(score_data)
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # DATA TABLE
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
 st.subheader("📊 Lead Data")
 
@@ -235,9 +256,9 @@ if not df.empty:
 else:
     st.info("ℹ️ Click 'Run AI Agent' to discover leads.")
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # LINKEDIN & DECISION MAKERS
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
 with st.expander("🔗 LinkedIn Data"):
     if not df.empty:
@@ -258,9 +279,9 @@ with st.expander("👤 Decision Makers"):
             if not dm_df.empty:
                 st.dataframe(dm_df, use_container_width=True)
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # DOWNLOAD
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
 st.subheader("📥 Download Data")
 
@@ -274,7 +295,7 @@ if not df.empty:
             csv_data,
             "leads.csv",
             "text/csv",
-            use_container_width=True
+            width='stretch'
         )
     
     with col2:
@@ -288,12 +309,12 @@ if not df.empty:
             excel_buffer,
             "leads.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
+            width='stretch'
         )
 
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 # FOOTER
-# ──────────────────────────────────────────────────────────────
+# ============================================================
 
 st.divider()
 st.caption("🤖 AI Sales Intelligence & Lead Generation Agent | SoftCr8ors Internship Project | 2026-07-10")

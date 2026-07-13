@@ -9,7 +9,6 @@ from pathlib import Path
 import io
 import sys
 import time
-import os
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -41,7 +40,7 @@ st.sidebar.divider()
 # RUN AGENT BUTTON
 # ============================================================
 
-run_agent = st.sidebar.button("🚀 Run AI Agent", type="primary", use_container_width=True)
+run_agent = st.sidebar.button("🚀 Run AI Agent", type="primary")
 
 # ============================================================
 # LOAD EXISTING DATA
@@ -82,7 +81,6 @@ def run_all_modules():
         results["Module 1: Business Discovery"] = "Running..."
         try:
             agent = BusinessDiscoveryAgent()
-            # You can pass filters here if needed
             results["Module 1: Business Discovery"] = "✅ Complete"
         except Exception as e:
             results["Module 1: Business Discovery"] = f"❌ Error: {str(e)[:50]}"
@@ -296,8 +294,7 @@ if not df.empty:
             "📄 Download CSV",
             csv_data,
             "leads.csv",
-            "text/csv",
-            use_container_width=True
+            "text/csv"
         )
     
     with col2:
@@ -310,8 +307,7 @@ if not df.empty:
             "📊 Download Excel",
             excel_buffer,
             "leads.xlsx",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
 # ============================================================
